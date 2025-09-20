@@ -19,6 +19,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
+    
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
@@ -32,7 +33,22 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-    - run: mvn --batch-mode --update-snapshots verify
+    
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+    
+    - name: Log in to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        # Ensure DOCKERHUB_USERNAME and DOCKERHUB_TOKEN are set in your repository secrets
+    
+    - name: Build Docker image
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/java-maven-app:latest .
+    
+    - name: Push Docker image
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/java-maven-app:latest
     - run: mkdir staging && cp target/*.jar staging
     - uses: actions/upload-artifact@v4
       with:
